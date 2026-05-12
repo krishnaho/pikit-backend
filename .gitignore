@@ -1,0 +1,65 @@
+*.zip
+# Laravel specific
+/vendor
+/node_modules
+/public/hot
+/public/storage
+/public/item/*
+/public/item-category/*
+/public/item-group/*
+/public/restaurant/*
+/public/restaurant-category/*
+/public/users/*
+/public/qrcodes/*
+/public/assets/images/banners/*
+/public/assets/images/Coupons/*
+/public/assets/images/itemcategory/*
+/public/assets/images/items/*
+/public/assets/images/restaurants/*
+/public/assets/images/users/*
+/public/assets/images/qrcodes/*
+
+/storage/*.key
+/storage/app/public
+/storage/framework/cache/data
+/storage/framework/sessions
+/storage/framework/views
+/storage/logs
+/bootstrap/cache
+
+# Environment variables
+/.env
+/.env.*.backup
+
+# IDE specific files
+.idea
+*.sublime-project
+*.sublime-workspace
+.vscode
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Composer
+composer.phar
+
+# NPM/Yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Laravel Horizon
+horizon.log
+
+# PHPUnit
+.phpunit.result.cache
+
+# Laravel Telescope
+/telescope/requests.db
+
+# Other
+*.log
+*.sql
+*.sqlite
+.env.backup
