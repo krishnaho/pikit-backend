@@ -362,7 +362,7 @@ Route::post('/add-new-address', [CustomerApiController::class, 'addNewAddress'])
 //notification
 
 Route::post('/get-all-notification', [CustomerApiController::class, 'getAllNotification']);
-Route::post('/read-notification', [CustomerApiController::class,  'readNotification']);
+Route::post('/read-notification', [CustomerApiController::class, 'readNotification']);
 
 
 //cart
@@ -391,7 +391,7 @@ Route::group(['middleware' => ['jwt.auth']], function () {
     Route::post('/picked-up-order', [VendorApiController::class, 'changeOrderStatusToPickedUp']);
     Route::post('/delivered-order', [VendorApiController::class, 'changeOrderStatusToDelivered']);
     Route::post('/get-all-pending-orders', [VendorApiController::class, 'getAllPendingOrders']);
-    Route::post('/get-all-orders', [VendorApiController::class, 'getAllOrders']);
+    Route::post('/get-all-vendor-orders', [VendorApiController::class, 'getAllOrders']);
     Route::post('/get-vendor-user-profile', [VendorApiController::class, 'getVendorUserProfile']);
 
     Route::post('/get-all-item-categories-vendor', [VendorApiController::class, 'getAllItemCategories']);
