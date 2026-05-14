@@ -2134,19 +2134,18 @@ class VendorApiController extends Controller
         $authStoreIds = Auth::user()->restaurants->pluck('id')->first();
         if ($authStoreIds) {
             $newOrders = Order::where('restaurant_id', $authStoreIds)
-                ->where(function ($query) {
-                    $query->where(function ($subQuery) {
-                        $subQuery->where('is_schedule', 0)
-                            ->whereIn('order_status_id', [1, 2]);
-                    })
-                        ->orWhere(function ($subQuery) {
-                            $subQuery->where('is_schedule', 1)
-                                ->where('order_status_id', 2);
-                        });
-                })
+                ->where('is_schedule', 0)
+                ->whereIn('order_status_id', [1, 2])
                 ->with('orderItems.item', 'orderItems.orderItemAddons', 'user')
                 ->orderBy('id', 'DESC')
 
+                ->get();
+
+            $scheduledOrders = Order::where('restaurant_id', $authStoreIds)
+                ->where('is_schedule', 1)
+                ->whereIn('order_status_id', [1, 2])
+                ->with('orderItems.item', 'orderItems.orderItemAddons', 'user')
+                ->orderBy('id', 'DESC')
                 ->get();
 
             $readyOrders = Order::where('restaurant_id', $authStoreIds)->where('order_status_id', 4)->with('orderItems.item', 'orderItems.orderItemAddons', 'user')->orderBy('id', 'DESC')->get();
@@ -2166,6 +2165,7 @@ class VendorApiController extends Controller
             $response = [
                 'success' => true,
                 'newOrders' => $newOrders,
+                'scheduledOrders' => $scheduledOrders,
                 'pickedOrders' => $pickedOrders,
                 'readyOrders' => $readyOrders,
                 'ongoingOrders' => $ongoingOrders,
