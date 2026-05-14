@@ -69,7 +69,7 @@ class AdminController extends Controller
 
     public function verifyOtp(Request $request)
     {
-        if ($request->phone == '815781600' && $request->otp == '1234') {
+        if ($request->phone == '8157816000' && $request->otp == '1234') {
             $response = ['valid_otp' => true];
         } else {
             $sms = new Sms();
