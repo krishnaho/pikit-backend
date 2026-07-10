@@ -5,7 +5,7 @@ return [
     /*
      * The api key used when sending Geocoding requests to Google.
      */
-    'key' => 'AIzaSyD8gyy7vdYe-ybpheXUPQT6XX4SfLrkyl4',
+    'key' => 'AIzaSyDSL0zlDzZ8KXzpAGg_hgu6jEnQbV5tmmw',
 
     /*
      * The language param used to set response translations for textual data.

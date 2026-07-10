@@ -48,7 +48,7 @@ class CartApiController extends Controller
     private function getDistanceGoogle($originLat, $originLng, $destLat, $destLng)
     {
         $client = new Client();
-        $apiKey = 'AIzaSyD8gyy7vdYe-ybpheXUPQT6XX4SfLrkyl4';
+        $apiKey = 'AIzaSyDSL0zlDzZ8KXzpAGg_hgu6jEnQbV5tmmw';
 
         $url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
 
@@ -128,19 +128,19 @@ class CartApiController extends Controller
             foreach ($filteredrestaurantIds as $restaurant_id) {
                 $restaurant = Restaurant::where('id', $restaurant_id)->where('is_active', 1)->where('is_accepted', 1)->first();
                 if ($restaurant) {
-                    $restaurant_charges +=  $restaurant->restaurant_charge;
+                    $restaurant_charges += $restaurant->restaurant_charge;
                     $taxAmount = $restaurant->tax > 0 ? (($restaurant->tax / 100) * $subTotal) : 0;
 
                     $tax += $taxAmount;
                 }
             }
 
-            $charges['restaurant_charges'] = (float)((float)$restaurant_charges);
-            $charges['tax'] = (float)((float)$tax);
+            $charges['restaurant_charges'] = (float) ((float) $restaurant_charges);
+            $charges['tax'] = (float) ((float) $tax);
             $response = [
                 'success' => true,
-                'restaurant_charge' => (float)((float)$charges['restaurant_charges']),
-                'tax' => (float)((float)$charges['tax']),
+                'restaurant_charge' => (float) ((float) $charges['restaurant_charges']),
+                'tax' => (float) ((float) $charges['tax']),
                 'restaurant' => $subTotal,
             ];
         } else {

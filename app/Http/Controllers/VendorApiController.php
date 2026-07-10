@@ -62,7 +62,7 @@ class VendorApiController extends Controller
     public function loginVendor(Request $request)
     {
         $user = User::where('email', $request->email)->with('restaurants')->first();
-        if ($user &&  \Hash::check($request->password, $user->password)) {
+        if ($user && \Hash::check($request->password, $user->password)) {
             if ($user->hasRole('Restaurant Owner')) {
                 $authStoreIds = $user->restaurants->pluck('id')->first();
                 $store = Restaurant::where('id', $authStoreIds)->first();
@@ -90,7 +90,7 @@ class VendorApiController extends Controller
                 ];
             }
         } else {
-            $response = ['success' => false,  'message' => 'These credentials do not match our records'];
+            $response = ['success' => false, 'message' => 'These credentials do not match our records'];
         }
         return response()->json($response, 201);
     }
@@ -200,7 +200,7 @@ class VendorApiController extends Controller
                     $amount[] = $weeklyOrders->where('created_at', '>=', Carbon::today()->subDays($i)->startOfDay())->where('created_at', '<=', Carbon::today()->subDays($i)->endOfDay())->count();
                     if ($i == 0) {
                         $days[] = "Today";
-                    } else  if ($i == 1) {
+                    } else if ($i == 1) {
                         $days[] = "Yesterday";
                     } else {
                         $days[] = Carbon::today()->subDays($i)->format('D');
@@ -217,7 +217,7 @@ class VendorApiController extends Controller
 
                 $dayArr = array_reverse($dayArr);
                 $chartData = [];
-                $weekData = new  Collection();
+                $weekData = new Collection();
                 for ($i = 0; $i <= 6; $i++) {
                     $chartData[] = [
                         $dayArr[$i] => $amtArr[$i],
@@ -349,7 +349,7 @@ class VendorApiController extends Controller
                 $restaurant = Restaurant::find($order->restaurant_id);
 
                 $heading = 'Order Confirmed';
-                $message =  $restaurant->name . ' has started preparing your order. Our delivery executive will pick it up soon.';
+                $message = $restaurant->name . ' has started preparing your order. Our delivery executive will pick it up soon.';
                 \App\Jobs\pushNotification::dispatch($order->user_id, $message, $heading, 'customer');
 
                 $vendors = $order->restaurant->users;
@@ -622,7 +622,7 @@ class VendorApiController extends Controller
         } else {
             $response = [
                 'success' => false,
-                'data' =>  "User Not Found"
+                'data' => "User Not Found"
             ];
         }
         return response()->json($response, 201);
@@ -652,7 +652,7 @@ class VendorApiController extends Controller
         } else {
             $response = [
                 'success' => false,
-                'data' =>  "User Not Found"
+                'data' => "User Not Found"
             ];
         }
         return response()->json($response, 201);
@@ -683,7 +683,7 @@ class VendorApiController extends Controller
         } else {
             $response = [
                 'success' => false,
-                'data' =>  "User Not Found"
+                'data' => "User Not Found"
             ];
         }
         return response()->json($response, 201);
@@ -954,17 +954,19 @@ class VendorApiController extends Controller
             if ($user) {
                 return response()->json([
                     'success' => true,
-                    'data' => [[
-                        'id' => $user->id,
-                        'auth_token' => $user->auth_token,
-                        'name' => $user->name,
-                        'email' => $user->email,
-                        'phone' => $user->phone,
-                        'default_address_id' => $user->default_address_id,
-                        'location' => $user->location,
-                        'building' => $user->building,
-                        'room_no' => $user->room_no,
-                    ]],
+                    'data' => [
+                        [
+                            'id' => $user->id,
+                            'auth_token' => $user->auth_token,
+                            'name' => $user->name,
+                            'email' => $user->email,
+                            'phone' => $user->phone,
+                            'default_address_id' => $user->default_address_id,
+                            'location' => $user->location,
+                            'building' => $user->building,
+                            'room_no' => $user->room_no,
+                        ]
+                    ],
                 ], 200);
             }
         }
@@ -1082,16 +1084,20 @@ class VendorApiController extends Controller
             $pendingPayout = Restaurant::where('id', $request->store_id)->where('is_accepted', 1)
                 ->whereHas('orders', function ($q) {
                     $q->where('order_status_id', 7)->where('is_payout_released', 0);
-                })->with(['orders' => function ($q) {
-                    $q->where('order_status_id', 7)->where('is_payout_released', 0);
-                }])->first();
+                })->with([
+                        'orders' => function ($q) {
+                            $q->where('order_status_id', 7)->where('is_payout_released', 0);
+                        }
+                    ])->first();
 
             $completedPayout = Restaurant::where('id', $request->store_id)->where('is_accepted', 1)
                 ->whereHas('orders', function ($q) {
                     $q->where('order_status_id', 7)->where('is_payout_released', 1);
-                })->with(['orders' => function ($q) {
-                    $q->where('order_status_id', 7)->where('is_payout_released', 1);
-                }])
+                })->with([
+                        'orders' => function ($q) {
+                            $q->where('order_status_id', 7)->where('is_payout_released', 1);
+                        }
+                    ])
                 ->first();
 
             $dateRange = Carbon::today()->subDays(7);
@@ -1104,7 +1110,7 @@ class VendorApiController extends Controller
                 $amount[] = $weeklyOrders->where('created_at', '>=', Carbon::today()->subDays($i)->startOfDay())->where('created_at', '<=', Carbon::today()->subDays($i)->endOfDay())->count();
                 if ($i == 0) {
                     $days[] = "Today";
-                } else  if ($i == 1) {
+                } else if ($i == 1) {
                     $days[] = "Yesterday";
                 } else {
                     $days[] = Carbon::today()->subDays($i)->format('D');
@@ -1121,7 +1127,7 @@ class VendorApiController extends Controller
 
             $dayArr = array_reverse($dayArr);
             $chartData = [];
-            $weekData = new  Collection();
+            $weekData = new Collection();
             for ($i = 0; $i <= 6; $i++) {
                 $chartData[] = [
                     $dayArr[$i] => $amtArr[$i],
@@ -1206,7 +1212,7 @@ class VendorApiController extends Controller
         return response()->json($response);
     }
 
-    public function exportCompletedOrders(Request  $request)
+    public function exportCompletedOrders(Request $request)
     {
         $user = Auth::user();
         if ($user) {
@@ -1692,10 +1698,12 @@ class VendorApiController extends Controller
     public function printOrderBillInstructions($order_id)
     {
         $user = User::where('id', 2)->first();
-        if (!$user) return [];
+        if (!$user)
+            return [];
 
         $order = Order::where('id', $order_id)->with('restaurant', 'orderitems')->first();
-        if (!$order) return [];
+        if (!$order)
+            return [];
 
         $singleLine = str_repeat('-', 32) . PHP_EOL;
         $instructions = [];
@@ -1856,10 +1864,12 @@ class VendorApiController extends Controller
     public function printOrderKOTBillInstructions($order_id)
     {
         $user = User::where('id', 2)->first();
-        if (!$user) return [];
+        if (!$user)
+            return [];
 
         $order = Order::where('id', $order_id)->with('restaurant', 'orderitems')->first();
-        if (!$order) return [];
+        if (!$order)
+            return [];
 
         $lineSeparator = str_repeat('-', 32) . PHP_EOL;
         $instructions = [];
@@ -1961,7 +1971,7 @@ class VendorApiController extends Controller
             // return response()->json($order_id);
             $order = Order::where('id', $order_id)->with('restaurant', 'orderitems')->first();
             info($order);
-            $html =  view('admin.orders.orderBillApp', compact('order'))->render();
+            $html = view('admin.orders.orderBillApp', compact('order'))->render();
             $image = SnappyImage::loadHTML($html)
                 ->setOption('format', 'jpg') // or 'png'
                 ->setOption('width', 210)
@@ -2212,13 +2222,15 @@ class VendorApiController extends Controller
         $restaurant = Restaurant::where('id', $request->restaurant_id)->with('favorites', 'city')->first();
         $itemCategories = ItemCategory::where('restaurant_id', $request->restaurant_id)
             ->where('is_active', 1)
-            ->with(['items' => function ($query) use ($restaurant_id) {
-                $query->with(
-                    'addonCategories',
-                    'restaurant.city',
-                    'addonCategories.addons'
-                )->where('restaurant_id', $restaurant_id)->where('is_active', 1);
-            }])->whereHas('items', function ($query) use ($restaurant_id) {
+            ->with([
+                'items' => function ($query) use ($restaurant_id) {
+                    $query->with(
+                        'addonCategories',
+                        'restaurant.city',
+                        'addonCategories.addons'
+                    )->where('restaurant_id', $restaurant_id)->where('is_active', 1);
+                }
+            ])->whereHas('items', function ($query) use ($restaurant_id) {
                 $query->with(
                     'addonCategories',
                     'restaurant.city',
@@ -2272,7 +2284,7 @@ class VendorApiController extends Controller
             $newOrder = new Order();
             $unique_order_id = 'OD' . '-' . date('m-d') . '-' . rand(1111, 9999) . '-' . rand(1111, 9999);
             $newOrder->unique_order_id = $unique_order_id;
-            $newOrder->platform_fee =  (float) ((float)$request->platform_fee);
+            $newOrder->platform_fee = (float) ((float) $request->platform_fee);
             // $newOrder->order_prepairing_time = 1;
             // $newOrder->customer_id = $request->customer_id;
             // $newOrder->customer_phone = $request->customer_phone;
@@ -2313,9 +2325,9 @@ class VendorApiController extends Controller
             //     $newOrder->is_express = 0;
             // }
 
-            $newOrder->restaurant_charges = (float) ((float)$restaurant->restaurant_charges);
+            $newOrder->restaurant_charges = (float) ((float) $restaurant->restaurant_charges);
             if ($restaurant->city->is_surge == 1) {
-                $newOrder->surge_fee = (float) ((float)$restaurant->city->surge_fee);
+                $newOrder->surge_fee = (float) ((float) $restaurant->city->surge_fee);
             }
             $newOrder->order_placed_at = Carbon::now();
             $newOrder->order_accepted_at = Carbon::now();
@@ -2329,9 +2341,9 @@ class VendorApiController extends Controller
                 if (isset($oI->quantity)) {
                     $orderTotal += ($originalItem->selling_price * $oI->quantity);
                     if (!is_null($originalItem->commision_rate)) {
-                        $orderItemCommission += (float) ((float)$originalItem->commision_rate / 100 * ($originalItem->selling_price * $oI->quantity));
+                        $orderItemCommission += (float) ((float) $originalItem->commision_rate / 100 * ($originalItem->selling_price * $oI->quantity));
                     } else {
-                        $orderItemCommission +=  (float) ((float)$originalItem->restaurant->commission_rate / 100 * ($originalItem->selling_price * $oI->quantity));
+                        $orderItemCommission += (float) ((float) $originalItem->restaurant->commission_rate / 100 * ($originalItem->selling_price * $oI->quantity));
                     }
                 }
 
@@ -2360,18 +2372,18 @@ class VendorApiController extends Controller
 
             $orderTotal = $orderTotal + $taxAmount;
 
-            $orderTotal = $orderTotal + (float) ((float)$restaurant->restaurant_charges);
-            $orderTotal = $orderTotal  +  (float) $request->platform_fee;
+            $orderTotal = $orderTotal + (float) ((float) $restaurant->restaurant_charges);
+            $orderTotal = $orderTotal + (float) $request->platform_fee;
 
             $newOrder->restaurant_total = $orderTotal;
 
             if ($restaurant->city->is_surge == 1) {
-                $orderTotal += (float) ((float)$restaurant->city->surge_fee);
+                $orderTotal += (float) ((float) $restaurant->city->surge_fee);
             }
-            $newOrder->total_commission = (float) ((float)$orderItemCommission);
+            $newOrder->total_commission = (float) ((float) $orderItemCommission);
 
             if ($restaurant->city->delivery_charge_type == 'DYNAMIC' && $restaurant->city->base_delivery_distance && $restaurant->city->extra_delivery_distance && $restaurant->city->extra_delivery_charge && $restaurant->city->base_delivery_charge) {
-                $distance =  (float)$request->distance;
+                $distance = (float) $request->distance;
                 if ($distance > $restaurant->city->base_delivery_distance) {
                     $extraDistance = $distance - $restaurant->city->base_delivery_distance;
                     $extraCharge = ($extraDistance / $restaurant->city->extra_delivery_distance) * $restaurant->city->extra_delivery_charge;
@@ -2396,7 +2408,7 @@ class VendorApiController extends Controller
                 }
             }
 
-            $newOrder->total = (float) ((float)$orderTotal);
+            $newOrder->total = (float) ((float) $orderTotal);
 
             $newOrder->order_comment = $request['deliveryNote'];
 
@@ -2414,9 +2426,9 @@ class VendorApiController extends Controller
             if ($request['paymentMode'] == 'ONLINE') {
                 $newOrder->save();
                 if ($request->partial_wallet == 'true') {
-                    $userWalletBalance = (float)floatval($user->balance);
+                    $userWalletBalance = (float) floatval($user->balance);
                     $newOrder->walletamount = $userWalletBalance;
-                    $newOrder->payable = (float) $orderTotal - (float)$userWalletBalance;
+                    $newOrder->payable = (float) $orderTotal - (float) $userWalletBalance;
                     $newOrder->save();
                     //deduct all user amount and add
                     $user->withdraw($userWalletBalance * 100, ['description' => 'Partial amount for Order  ' . $newOrder->unique_order_id]);
@@ -2491,7 +2503,7 @@ class VendorApiController extends Controller
                     if ($request->partial_wallet == 'true') {
                         $userWalletBalance = (float) floatval($user->balance);
                         $newOrder->walletamount = $userWalletBalance;
-                        $newOrder->payable = (float) $orderTotal - (float)$userWalletBalance;
+                        $newOrder->payable = (float) $orderTotal - (float) $userWalletBalance;
                         $newOrder->save();
                     }
                 }
@@ -2550,7 +2562,7 @@ class VendorApiController extends Controller
 
                 $vHeading = 'Order Created!';
                 $userName = User::where('id', $newOrder->user_id)->value('name');
-                $vMessage = 'An order for ' .    $userName  . ' has been created. Please begin preparation and ensure timely delivery.';
+                $vMessage = 'An order for ' . $userName . ' has been created. Please begin preparation and ensure timely delivery.';
                 $vendors = $restaurant->users;
                 foreach ($vendors as $vendor) {
                     \App\Jobs\pushNotification::dispatch($vendor->id, $vMessage, $vHeading, 'vendor');
@@ -2619,7 +2631,7 @@ class VendorApiController extends Controller
     private function getDistanceGoogle($originLat, $originLng, $destLat, $destLng)
     {
         $client = new Client();
-        $apiKey = 'AIzaSyD8gyy7vdYe-ybpheXUPQT6XX4SfLrkyl4';
+        $apiKey = 'AIzaSyDSL0zlDzZ8KXzpAGg_hgu6jEnQbV5tmmw';
 
         $url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
 
@@ -2683,17 +2695,17 @@ class VendorApiController extends Controller
             foreach ($filteredrestaurantIds as $restaurant_id) {
                 $restaurant = Restaurant::where('id', $restaurant_id)->where('is_active', 1)->where('is_accepted', 1)->first();
                 if ($restaurant) {
-                    $restaurant_charges +=  $restaurant->restaurant_charge;
+                    $restaurant_charges += $restaurant->restaurant_charge;
                     $tax += $restaurant->tax;
                 }
             }
 
-            $charges['restaurant_charges'] = (float)((float)$restaurant_charges);
-            $charges['tax'] = (float)((float)$tax);
+            $charges['restaurant_charges'] = (float) ((float) $restaurant_charges);
+            $charges['tax'] = (float) ((float) $tax);
             $response = [
                 'success' => true,
-                'restaurant_charge' => (float)((float)$charges['restaurant_charges']),
-                'tax' => (float)((float)$charges['tax']),
+                'restaurant_charge' => (float) ((float) $charges['restaurant_charges']),
+                'tax' => (float) ((float) $charges['tax']),
             ];
         } else {
             $response = [
