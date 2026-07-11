@@ -44,11 +44,17 @@ class CartApiController extends Controller
             cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
         return $angle * 6371;
     }
-
     private function getDistanceGoogle($originLat, $originLng, $destLat, $destLng)
     {
+        \Log::info('getDistanceGoogle: Started distance calculation', [
+            'originLat' => $originLat,
+            'originLng' => $originLng,
+            'destLat' => $destLat,
+            'destLng' => $destLng
+        ]);
+
         $client = new Client();
-        $apiKey = 'AIzaSyDSL0zlDzZ8KXzpAGg_hgu6jEnQbV5tmmw';
+        $apiKey = 'AIzaSyCXJoxjl9n-5zU7unjCFzUZyTEK0kqsyHA';
 
         $url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
 
@@ -59,24 +65,36 @@ class CartApiController extends Controller
         ];
 
         try {
+            \Log::info('getDistanceGoogle: Calling Google Distance Matrix API', ['params' => $params]);
             $response = $client->get($url, ['query' => $params]);
             $data = json_decode($response->getBody(), true);
+            \Log::info('getDistanceGoogle: Google Distance Matrix API response received', ['data' => $data]);
 
             if (!empty($data['rows'][0]['elements'][0]['distance'])) {
                 $distanceInMeters = $data['rows'][0]['elements'][0]['distance']['value'];
+                $distanceInKm = $distanceInMeters / 1000;
+                \Log::info('getDistanceGoogle: Using Google Maps driving distance', ['distance_km' => $distanceInKm]);
 
-                return $distanceInMeters / 1000;
+                return $distanceInKm;
             }
 
+            \Log::warning('getDistanceGoogle: Google Maps response elements empty. Falling back to air distance.');
             $restaurant_distance = $this->getDistance($originLat, $originLng, $destLat, $destLng);
+            \Log::info('getDistanceGoogle: Fallback air distance calculated', ['distance_km' => $restaurant_distance]);
 
             return $restaurant_distance;
         } catch (\Exception $e) {
+            \Log::error('getDistanceGoogle: Google Maps API exception occurred. Falling back to air distance.', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             $restaurant_distance = $this->getDistance($originLat, $originLng, $destLat, $destLng);
+            \Log::info('getDistanceGoogle: Fallback air distance calculated', ['distance_km' => $restaurant_distance]);
 
             return $restaurant_distance;
         }
     }
+
 
     public function calculateRestaurantMaxDistance(Request $request)
     {
