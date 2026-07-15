@@ -236,12 +236,17 @@ class CustomerApiController extends Controller
         $restaurant->is_favorited = $restaurant->isFavorited();
         $itemCategories = ItemCategory::where('restaurant_id', $restaurant->id)
             ->where('is_active', 1)
+            ->whereHas('items', function ($query) use ($restaurant) {
+                $query->where('restaurant_id', $restaurant->id)
+                      ->where('is_active', 1);
+            })
             ->with(['items' => function ($query) use ($restaurant) {
                 $query->with(
                     'addonCategories',
                     'restaurant.city',
                     'addonCategories.addons'
-                )->where('restaurant_id', $restaurant->id);
+                )->where('restaurant_id', $restaurant->id)
+                 ->where('is_active', 1);
             }])->orderBy('order_column', 'asc')->get();
 
         $response = [
