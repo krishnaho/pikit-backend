@@ -300,9 +300,30 @@ class CustomerApiController extends Controller
 
     public function getSingleCategory(Request $request)
     {
-        // $category = ItemCategory::where('id', $request->category_id)
+        // Try ItemCategory first
         $category = ItemCategory::where('id', $request->category_id)
-            ->where('is_active', 1)->with('items')->first();
+            ->where('is_active', 1)
+            ->with(['items' => function ($query) {
+                $query->where('is_active', 1)
+                      ->whereHas('restaurant', function ($q) {
+                          $q->where('is_active', 1);
+                      })
+                      ->with('restaurant');
+            }])->first();
+
+        // If not found, try ItemGroup
+        if (!$category) {
+            $category = ItemGroup::where('id', $request->category_id)
+                ->where('is_active', 1)
+                ->with(['items' => function ($query) {
+                    $query->where('is_active', 1)
+                          ->whereHas('restaurant', function ($q) {
+                              $q->where('is_active', 1);
+                          })
+                          ->with('restaurant');
+                }])->first();
+        }
+
         $response = [
             'success' => true,
             'category' => $category
