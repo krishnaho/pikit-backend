@@ -223,7 +223,10 @@ class OrderApiController extends Controller
                 $orderTotal += $restaurant->city->delivery_charge;
             }
 
-            $total = $orderTotal  +  (float) $request->platform_fee;
+            $tipAmount = (float) ($request->delivery_tip ?? $request->tip_amount ?? 0);
+            $newOrder->tip_amount = $tipAmount > 0 ? $tipAmount : null;
+
+            $total = $orderTotal  +  (float) $request->platform_fee + $tipAmount;
             if ($request['paymentMode'] == 'ONLINE') {
                 $total += round($total * 0.0269 + 0.50, 2);
             }
