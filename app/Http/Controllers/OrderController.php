@@ -341,24 +341,25 @@ class OrderController extends Controller
 
             // Determine the amount based on payment_mode and walletamount
             $amount = null;
-            if ($order->payment_mode === 'ONLINE') {
+            $refundMessage = 'Refund for order cancellation #' . $order->unique_order_id;
+            if ($order->payment_mode === 'ONLINE' || $order->payment_mode === 'WALLET') {
                 $amount = $order->total;
-            } elseif ($order->payment_mode === 'COD' && $order->walletamount) {
-                $amount = $order->payout_amount;
+            } elseif ($order->payment_mode === 'COD' && $order->walletamount > 0) {
+                $amount = $order->walletamount;
+                $refundMessage = 'Refund for KoCash on order cancellation #' . $order->unique_order_id;
             }
 
             // Attempt to add money to the wallet based on the adjustment type
-            if ($amount !== null) {
+            if ($amount !== null && $amount > 0) {
                 try {
                     if ($adjustment == 'deposit') {
-                        $user->deposit($amount, ['description' => $message]);
+                        $user->deposit($amount, ['description' => $refundMessage]);
                     } else {
-                        if ($user->balanceFloat >= $amount) {
-                            $user->withdraw($amount, ['description' => $message]);
+                        if ($user->balance >= $amount) {
+                            $user->withdraw($amount, ['description' => $refundMessage]);
                         } else {
                             return redirect()->back()->with([
                                 'success' => 'Order Cancelled',
-
                                 'message' => 'Insufficient balance for withdrawal.'
                             ]);
                         }

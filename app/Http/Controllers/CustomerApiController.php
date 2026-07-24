@@ -694,14 +694,18 @@ class CustomerApiController extends Controller
 
                 // Determine the amount based on payment_mode and walletamount
                 $amount = null;
-                if ($order->payment_mode === 'ONLINE') {
+                $defaultNote = 'Refund for order cancellation #' . $order->unique_order_id;
+                if ($order->payment_mode === 'ONLINE' || $order->payment_mode === 'WALLET') {
                     $amount = $order->total;
-                } elseif ($order->payment_mode === 'COD' && $order->walletamount) {
-                    $amount = $order->payout_amount;
+                } elseif ($order->payment_mode === 'COD' && $order->walletamount > 0) {
+                    $amount = $order->walletamount;
+                    $defaultNote = 'Refund for KoCash on order cancellation #' . $order->unique_order_id;
                 }
 
+                $note = $request->message ?: $defaultNote;
+
                 // Log the values for debugging
-                Log::info('Order amount:', ['amount' => $amount]);
+                Log::info('Order refund amount:', ['amount' => $amount, 'payment_mode' => $order->payment_mode]);
 
                 // Initialize response
                 $response = [
@@ -711,18 +715,16 @@ class CustomerApiController extends Controller
                 ];
 
                 // Attempt to add money to the wallet based on the adjustment type
-                if ($amount !== null) {
+                if ($amount !== null && $amount > 0) {
                     if ($data['adjustment'] == 'deposit') {
-                        $user->deposit($amount, ['description' => $request->message]);
+                        $user->deposit($amount, ['description' => $note]);
                     } else {
-                        if ($user->balanceFloat >= $amount) {
-                            $user->withdraw($amount, ['description' => $request->message]);
+                        if ($user->balance >= $amount) {
+                            $user->withdraw($amount, ['description' => $note]);
                         } else {
                             $response['message'] = 'Order cancelled, but insufficient balance for withdrawal.';
                         }
                     }
-                } else {
-                    $response['message'] = 'Order cancelled, but invalid payment mode or missing wallet amount for COD.';
                 }
 
                 // Retrieve running and previous orders

@@ -231,11 +231,50 @@ class OrderApiController extends Controller
                 $total += round($total * 0.0269 + 0.50, 2);
             }
             $newOrder->total = $total;
-            // $newOrder->order_comment = $request['deliveryNote'];
             $newOrder->order_comment = $request['order_comment'];
 
-            $newOrder->payment_mode = $request['paymentMode'];
-            $newOrder->payment_status = "PENDING";
+            $partialWallet = $request->boolean('partial_wallet') || $request->input('partial_wallet') === 'true' || $request->input('partial_wallet') === 1;
+            $paymentMode = $request['paymentMode'];
+            $userBalance = (float) $user->balance;
+            $walletAmountUsed = 0;
+            $payableAmount = $total;
+
+            if ($paymentMode === 'WALLET') {
+                if ($userBalance < $total) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Insufficient KoCash wallet balance.'
+                    ], 400);
+                }
+                $walletAmountUsed = $total;
+                $payableAmount = 0;
+                $newOrder->payment_mode = 'WALLET';
+                $newOrder->payment_status = 'PAID';
+                $newOrder->order_status_id = '1';
+            } elseif ($partialWallet && $userBalance > 0) {
+                $walletAmountUsed = min($userBalance, $total);
+                $payableAmount = max(0, $total - $walletAmountUsed);
+                $newOrder->payment_mode = $paymentMode;
+                $newOrder->payment_status = 'PENDING';
+                if ($paymentMode === 'ONLINE' && $payableAmount == 0) {
+                    $newOrder->payment_mode = 'WALLET';
+                    $newOrder->payment_status = 'PAID';
+                    $newOrder->order_status_id = '1';
+                }
+            } else {
+                $newOrder->payment_mode = $paymentMode;
+                $newOrder->payment_status = 'PENDING';
+            }
+
+            if ($walletAmountUsed > 0) {
+                $note = ($newOrder->payment_mode === 'WALLET' || $payableAmount == 0)
+                    ? 'Payment for order #' . $unique_order_id
+                    : 'Partial payment for order #' . $unique_order_id;
+                $user->withdraw($walletAmountUsed, ['description' => $note]);
+            }
+
+            $newOrder->walletamount = $walletAmountUsed;
+            $newOrder->payable = $payableAmount;
             $newOrder->restaurant_id = $request->restaurant_id;
 
             $newOrder->payout_amount = ($newOrder->sub_total + $newOrder->restaurant_charges) - $newOrder->total_commission;
