@@ -54,7 +54,7 @@ class CartApiController extends Controller
         ]);
 
         $client = new Client();
-        $apiKey = 'AIzaSyCXJoxjl9n-5zU7unjCFzUZyTEK0kqsyHA';
+        $apiKey = config('services.google.api_key');
 
         $url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
 

@@ -38,6 +38,8 @@ use Intervention\Image\Drivers\Gd\Driver;
 
 class VendorApiController extends Controller
 {
+    use \App\Traits\CompressesImages;
+
     private function getToken($user)
     {
         $token = null;
@@ -807,10 +809,7 @@ class VendorApiController extends Controller
                 $item->is_veg = 0;
             }
             if ($request->file('image')) {
-                $image = $request->file('image');
-                $imageName = time() . $image->getClientOriginalName();
-                $image->move(public_path('/assets/images/items/'), $imageName);
-                $item->image = 'https://zeato.howincloud.com/public/assets/images/items/' . $imageName;
+                $item->image = $this->compressAndSaveImage($request->file('image'), 'assets/images/items');
             }
             $item->is_active = 1;
             $item->save();
@@ -838,10 +837,7 @@ class VendorApiController extends Controller
             $category->restaurant_category_id = $restaurant->restaurant_category_id;
             $category->description = $request->description;
             if ($request->file('image')) {
-                $image = $request->file('image');
-                $imageName = time() . $image->getClientOriginalName();
-                $image->move(public_path('/assets/images/itemcategory/'), $imageName);
-                $category->image = 'https://zeato.howincloud.com/public/assets/images/itemcategory/' . $imageName;
+                $category->image = $this->compressAndSaveImage($request->file('image'), 'assets/images/itemcategory');
             }
             $category->is_active = 1;
             $category->save();
@@ -1042,10 +1038,7 @@ class VendorApiController extends Controller
             $store->description = $request->description;
             $store->min_order_price = $request->min_order_price;
             if ($request->file('image')) {
-                $file = $request->file('image');
-                $imageName = time() . $file->getClientOriginalName();
-                $file->move(public_path('/restaurant/'), $imageName);
-                $store->image = 'restaurant/' . $imageName;
+                $store->image = $this->compressAndSaveImage($request->file('image'), 'restaurant');
             }
             $store->save();
             $response = [
@@ -2189,7 +2182,6 @@ class VendorApiController extends Controller
         }
         return response()->json($response);
     }
-
     public function getAllPendingOrders(Request $request)
     {
         $authStoreIds = Auth::user()->restaurants->pluck('id')->first();
@@ -2383,7 +2375,13 @@ class VendorApiController extends Controller
             $newOrder->total_commission = (float) ((float) $orderItemCommission);
 
             if ($restaurant->city->delivery_charge_type == 'DYNAMIC' && $restaurant->city->base_delivery_distance && $restaurant->city->extra_delivery_distance && $restaurant->city->extra_delivery_charge && $restaurant->city->base_delivery_charge) {
-                $distance = (float) $request->distance;
+                // $distance =  (float)$request->distance;
+                $distance = $this->getDistanceGoogle(
+                    $restaurant->latitude,
+                    $restaurant->longitude,
+                    $request->latitude,
+                    $request->longitude
+                );
                 if ($distance > $restaurant->city->base_delivery_distance) {
                     $extraDistance = $distance - $restaurant->city->base_delivery_distance;
                     $extraCharge = ($extraDistance / $restaurant->city->extra_delivery_distance) * $restaurant->city->extra_delivery_charge;
@@ -2458,9 +2456,6 @@ class VendorApiController extends Controller
                                 $addonItem->price = $addon->price;
                                 $addonItem->quantity = $selectedaddon->quantity;
                                 $addonItem->save();
-                                $item->price += $addon->price;
-                                $item->quantity += $selectedaddon->quantity;
-                                $item->save();
                                 $addon->stock = $addon->stock - 1;
                             }
                         }
@@ -2484,7 +2479,7 @@ class VendorApiController extends Controller
                             $newOrder->total,
                             $restaurant->name,
                             $restaurant->address,
-                            "ZEATO05"
+                            "PIKIT05"
                         ],
                         "buttonValues" => [
                             "1" => [
@@ -2546,8 +2541,6 @@ class VendorApiController extends Controller
                             $addon->quantity = $selectedaddon->quantity;
 
                             $addon->save();
-                            $item->price += $realAddon->price;
-                            $item->save();
                         }
                     }
                     if (isset($orderItem->removals)) {
@@ -2584,7 +2577,7 @@ class VendorApiController extends Controller
                             $newOrder->total,
                             $restaurant->name,
                             $restaurant->address,
-                            "ZEATO05"
+                            "PIKIT05"
                         ],
                         "buttonValues" => [
                             "1" => [
@@ -2594,7 +2587,7 @@ class VendorApiController extends Controller
                     ],
                 ];
 
-                SendInteraktMessage::dispatch($data);
+                // SendInteraktMessage::dispatch($data);
 
                 return response()->json($response);
             }
@@ -2631,7 +2624,7 @@ class VendorApiController extends Controller
     private function getDistanceGoogle($originLat, $originLng, $destLat, $destLng)
     {
         $client = new Client();
-        $apiKey = 'AIzaSyDSL0zlDzZ8KXzpAGg_hgu6jEnQbV5tmmw';
+        $apiKey = config('services.google.api_key');
 
         $url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
 
